@@ -6,15 +6,16 @@ import (
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"log"
+	"net"
 	"os"
 )
 
 func main() {
 
-	if len(os.Args) != 3 {
-		log.Fatalf("Usage: go run main.go <src device name> <dst device name>")
+	if len(os.Args) != 2 {
+		log.Fatalf("Usage: go run main.go <receiver device name>")
 	}
-	providedDeviceName, srcDeviceName := os.Args[1], os.Args[2]
+	providedDeviceName := os.Args[1]
 
 	devices, err := pcap.FindAllDevs()
 	if err != nil {
@@ -31,8 +32,9 @@ func main() {
 	if !deviceFound {
 		log.Fatalf("Device '%s' not found", providedDeviceName)
 	}
-
-	handle, err := pcap.OpenLive(providedDeviceName, 1500, true, pcap.BlockForever)
+	listenInterface, _ := net.InterfaceByName(providedDeviceName)
+	listenInterfaceMACAddress := listenInterface.HardwareAddr.String()
+	handle, err := pcap.OpenLive(providedDeviceName, 1500, false, pcap.BlockForever)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,7 +48,7 @@ func main() {
 		}
 		ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)
 
-		if ethernetPacket.SrcMAC.String() != srcDeviceName {
+		if ethernetPacket.DstMAC.String() != listenInterfaceMACAddress {
 			continue
 		}
 		fmt.Println("Reading packet...")
