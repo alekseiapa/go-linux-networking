@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  sender:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    privileged: true
+    hostname: sender
+    container_name: sender
+    command: sleep infinity
+    mac_address: 02:42:ac:11:00:02
+    networks:
+      intnet:
+
+  receiver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    privileged: true
+    hostname: receiver
+    container_name: receiver
+    command: sleep infinity
+    mac_address: 02:42:ac:11:00:03
+    networks:
+      intnet:
+
+networks:
+  intnet:
+    driver: bridge
